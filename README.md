@@ -1,71 +1,57 @@
-# Snakemake workflow: `<name>`
+# VirusHuntDB
+A drop in, customizable, replacement for Virosaurus
 
-[![Snakemake](https://img.shields.io/badge/snakemake-≥8.0.0-brightgreen.svg)](https://snakemake.github.io)
-[![GitHub actions status](https://github.com/<owner>/<repo>/workflows/Tests/badge.svg?branch=main)](https://github.com/<owner>/<repo>/actions?query=branch%3Amain+workflow%3ATests)
-[![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
-[![workflow catalog](https://img.shields.io/badge/Snakemake%20workflow%20catalog-darkgreen)](https://snakemake.github.io/snakemake-workflow-catalog/docs/workflows/<owner>/<repo>)
+# Planning
 
-A Snakemake workflow for `<description>`
+How was Virosaurus created?
 
-- [Snakemake workflow: `<name>`](#snakemake-workflow-name)
-  - [Usage](#usage)
-  - [Deployment options](#deployment-options)
-  - [Authors](#authors)
-  - [References](#references)
-  - [TODO](#todo)
+#### QC:
+1. Viral sequences were downloaded from INSDC
+	- Sequences were filtered by removing all obviously incomplete sequences through keywords like “partial”, “incomplete”, “near complete”, etc. 
+	- A range of sizes was manually curated for each virus using all available data in INSDC to assess completeness (manually??)
+	- The sequences were separated into non-segmented and segmented genomes. 
+2. Sequences were filtered using the Expasy ViralZone list of viruses that infect Eukaryotes
+3. Sequences divided into vertebrate, plant and other eukaryotes, rest were descarded
+4. Sequences were labelled using ICTV species names
+5. Removal of sequences with too many “N”s (more than 10%) or at least one gap annotation of unknown length.
+6. Not applicable to VirusHuntDB: Non-viral elements, like vectors or recombined oncogenes were removed by the application of keywords filtering.
+ 
+#### For segmented viruses:
+1. All segmented virus sequences were clustered and the segment name was identified by checking for similarity against UniProt (BLAST) 
+2. All segments have been processed exactly as monopartite genomes for quality and completeness. 
+3. Once all segment names were identified by sequence similarity, their completeness was estimated by comparing to a matrix of complete segment size ranges for each genus. Size data were established manually for each virus genus using INSDC data.
+4. Mutli-species clusters were checked manually. All names were reported in the FASTA header representing the cluster.
 
-## Usage
+#### Clinical Annotation
+1. Manually curated set of viruses were labelled as 'clinical typing', with some viruses labelled as low or high risk.
+	- Norwalk, Dengue, and Hepatitis C viruses
+	- Enterovirus 71, Enterovirus 68, low-risk or high risk HPVs, Polio or non-polio enterovirus C, and novel or classical for mamastrovirus
 
-The usage of this workflow is described in the [Snakemake Workflow Catalog](https://snakemake.github.io/snakemake-workflow-catalog/docs/workflows/<owner>/<repo>).
+#### Clustering
 
-Detailed information about input data and workflow configuration can also be found in the [`config/README.md`](config/README.md).
+1. Clustering was performed with CD-HIT at 90% and 98% identity.
+2. For herpesvirid and poxvirid, virus genes were to speed up clustering
+3. Clusters were then controlled for size homogeneity (cut-off 80%) and checked if they referred to a single species. 
 
-If you use this workflow in a paper, don't forget to give credits to the authors by citing the URL of this repository or its DOI.
 
-## Deployment options
+### Proposed methodology for VirusHuntDB
 
-To run the workflow from command line, change the working directory.
+Virosaurus uses a 'top-down' approach: AllSequences->filter->cluster. VirusHuntDB will take a bottom-up approach: VirusSequences->Curate->Filter->Cluster
 
-```bash
-cd path/to/snakemake-workflow-name
-```
+Non-segmented viruses:
+1. Extract list of viruses which infect plant or vertebrate etc from ICTV Virus Properties tables.
+2. Match virus family to the VMR list, extract ncbi taxon id
+3. Download examplar genome and annotation to use as reference
+4. Align with Nextclade sequences to examplar genome
+5. Filter genomes which are near-complete (95%) compared to reference
+6. Cluster with mmseq2 with `linclust`
 
-Adjust options in the default config file `config/config.yaml`.
-Before running the complete workflow, you can perform a dry run using:
+Segmented viruses:
+1. 
 
-```bash
-snakemake --dry-run
-```
 
-To run the workflow with test files using **conda**:
+### Resources
 
-```bash
-snakemake --cores 2 --sdm conda --directory .test
-```
-
-To run the workflow with **apptainer** / **singularity**, add a link to a container registry in the `Snakefile`, for example `container: "oras://ghcr.io/<user>/<repository>:<version>"` for Github's container registry.
-Run the workflow with:
-
-```bash
-snakemake --cores 2 --sdm conda apptainer --directory .test
-```
-
-## Authors
-
-- Firstname Lastname
-  - Affiliation
-  - ORCID profile
-  - home page
-
-## References
-
-> Köster, J., Mölder, F., Jablonski, K. P., Letcher, B., Hall, M. B., Tomkins-Tinch, C. H., Sochat, V., Forster, J., Lee, S., Twardziok, S. O., Kanitz, A., Wilm, A., Holtgrewe, M., Rahmann, S., & Nahnsen, S. _Sustainable data analysis with Snakemake_. F1000Research, 10:33, 10, 33, **2021**. https://doi.org/10.12688/f1000research.29032.2.
-
-## TODO
-
-- Replace `<owner>` and `<repo>` everywhere in the template with the correct user name/organization, and the repository name. The workflow will be automatically added to the [snakemake workflow catalog](https://snakemake.github.io/snakemake-workflow-catalog/index.html) once it is publicly available on Github.
-- Replace `<name>` with the workflow name (can be the same as `<repo>`).
-- Replace `<description>` with a description of what the workflow does.
-- Update the [deployment](#deployment-options), [authors](#authors) and [references](#references) sections.
-- Update the `README.md` badges. Add or remove badges for `conda`/`singularity`/`apptainer` usage depending on the workflow's [deployment](#deployment-options) options.
-- Do not forget to also adjust the configuration-specific `config/README.md` file.
+- [ICTV VMR contains](https://ictv.global/vmr) a complete list of examplar viruses and ncbi taxon ids
+- [ICTV Virus Properties table](https://ictv.global/virus-properties) for extracting viruses that infect specific hosts
+- [Expasy Viral Zone](https://viralzone.expasy.org/655) used by Virosaurus

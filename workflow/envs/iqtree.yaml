@@ -1,8 +1,7 @@
-name: get_genome
+name: fasttree
 channels:
   - conda-forge
   - bioconda
   - nodefaults
 dependencies:
-  - gzip=1.14
-  - wget=1.21.4
+  - iqtree=3.0.1

@@ -1,0 +1,7 @@
+name: get_genomes
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - nextclade=3.15.3

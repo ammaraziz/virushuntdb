@@ -1,0 +1,7 @@
+name: get_genomes
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - ncbi-datasets-cli=18.5.0

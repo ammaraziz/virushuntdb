@@ -1,7 +1,7 @@
 # import basic packages
 import pandas as pd
 from snakemake.utils import validate
-
+from pathlib import Path
 
 # read sample sheet
 samples = (
@@ -9,6 +9,8 @@ samples = (
     .set_index("sample", drop=False)
     .sort_index()
 )
+
+#print(samples.loc['sample1', 'read1'])
 
 
 # validate sample sheet and config file

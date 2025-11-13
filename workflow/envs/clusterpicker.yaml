@@ -1,0 +1,7 @@
+name: fasttree
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - clusterpicker=2.1.11
